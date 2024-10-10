@@ -63,16 +63,17 @@
             position: absolute;
             width: 60px;
             height: 20px;
-            background-image: url('https://upload.wikimedia.org/wikipedia/en/thumb/0/0b/Peter_Griffin.png/250px-Peter_Griffin.png');
+            background-image: url('https://mylesevans.github.io/peterle/peter.png');
             background-size: cover;
             display: none;
         }
 
-        .beam-flash {
+        .small-peter {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 0, 0.2);
+            width: 50px;
+            height: 50px;
+            background-image: url('https://mylesevans.github.io/peterle/peter.png');
+            background-size: cover;
             display: none;
         }
     </style>
@@ -91,19 +92,15 @@
     </div>
 
     <!-- Peter Griffin Image -->
-    <img id="peter" src="https://upload.wikimedia.org/wikipedia/en/thumb/0/0b/Peter_Griffin.png/250px-Peter_Griffin.png" alt="Peter Griffin">
+    <img id="peter" src="https://mylesevans.github.io/peterle/peter.png" alt="Peter Griffin">
 
     <!-- Peter Beam -->
     <div id="beam" class="peter-beam"></div>
-
-    <!-- Flash Effect -->
-    <div id="flash" class="beam-flash"></div>
 
     <script>
         const peter = document.getElementById('peter');
         const healthBar = document.getElementById('health');
         const beam = document.getElementById('beam');
-        const flash = document.getElementById('flash');
         let health = 500;
         let vx = 3; // Velocity X
         let vy = 3; // Velocity Y
@@ -114,7 +111,7 @@
             health -= 10;
             if (health <= 0) {
                 health = 0;
-                document.querySelector('.google-logo').innerHTML = "<span>W</span><span>e</span><span>l</span><span>l</span> <span>D</span><span>o</span><span>n</span><span>e</span>";
+                explodePeter(); // Explode Peter magnificently
             }
             healthBar.style.width = (health / 500) * 100 + '%';
         }
@@ -151,11 +148,7 @@
                     isShooting = true;
                     peter.style.transition = 'transform 0.5s';
                     peter.style.transform = 'scale(1.2)'; // Small zoom effect before shooting
-                    flash.style.display = 'block';
-                    setTimeout(() => {
-                        flash.style.display = 'none';
-                        shootBeam();
-                    }, 300);
+                    shootBeam();
                 }
                 stopAndShoot();
             }, Math.random() * 5000 + 3000); // Peter will shoot every 3-8 seconds
@@ -194,6 +187,46 @@
                     }
                 });
             }, 20);
+        }
+
+        // Peter explodes into smaller Peters
+        function explodePeter() {
+            // Hide the main Peter image
+            peter.style.display = 'none';
+
+            // Create explosion effect with small Peters
+            for (let i = 0; i < 20; i++) {
+                const smallPeter = document.createElement('div');
+                smallPeter.classList.add('small-peter');
+                document.body.appendChild(smallPeter);
+                smallPeter.style.left = `${peter.offsetLeft}px`;
+                smallPeter.style.top = `${peter.offsetTop}px`;
+                smallPeter.style.display = 'block';
+
+                // Randomize the direction and speed of each small Peter
+                let angle = Math.random() * 360;
+                let speed = Math.random() * 10 + 5;
+                let vx = speed * Math.cos(angle);
+                let vy = speed * Math.sin(angle);
+
+                // Animate the small Peters scattering
+                let interval = setInterval(() => {
+                    smallPeter.style.left = (smallPeter.offsetLeft + vx) + 'px';
+                    smallPeter.style.top = (smallPeter.offsetTop + vy) + 'px';
+
+                    // Remove small Peter if it goes off-screen
+                    if (smallPeter.offsetLeft < 0 || smallPeter.offsetLeft > window.innerWidth ||
+                        smallPeter.offsetTop < 0 || smallPeter.offsetTop > window.innerHeight) {
+                        clearInterval(interval);
+                        smallPeter.remove();
+                    }
+                }, 30);
+            }
+
+            // Display "Well Done" message
+            setTimeout(() => {
+                document.querySelector('.google-logo').innerHTML = "<span>W</span><span>e</span><span>l</span><span>l</span> <span>D</span><span>o</span><span>n</span><span>e</span>";
+            }, 1000);
         }
 
         // Initialize Peter's position and start bouncing
