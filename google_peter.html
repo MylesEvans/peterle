@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouncing Peter Griffin Boss</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .google-container {
+            margin-top: 15%;
+        }
+
+        .google-logo {
+            font-size: 90px;
+            color: #4285F4;
+            letter-spacing: -5px;
+        }
+
+        .google-logo span:nth-child(2) {
+            color: #DB4437;
+        }
+
+        .google-logo span:nth-child(3) {
+            color: #F4B400;
+        }
+
+        .google-logo span:nth-child(4) {
+            color: #4285F4;
+        }
+
+        .boss-health-bar {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 30px;
+            border: 2px solid #000;
+            background-color: #f3f3f3;
+        }
+
+        .boss-health {
+            height: 100%;
+            background-color: #FF6347;
+            width: 100%;
+        }
+
+        #peter {
+            position: absolute;
+            width: 100px;
+            cursor: pointer;
+        }
+
+        .peter-beam {
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background-image: url('https://upload.wikimedia.org/wikipedia/en/thumb/0/0b/Peter_Griffin.png/250px-Peter_Griffin.png');
+            background-size: cover;
+            display: none;
+        }
+
+        .beam-flash {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 0, 0.2);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="google-container">
+        <div class="google-logo">
+            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+        </div>
+    </div>
+
+    <!-- Health Bar -->
+    <div class="boss-health-bar">
+        <div id="health" class="boss-health"></div>
+    </div>
+
+    <!-- Peter Griffin Image -->
+    <img id="peter" src="https://upload.wikimedia.org/wikipedia/en/thumb/0/0b/Peter_Griffin.png/250px-Peter_Griffin.png" alt="Peter Griffin">
+
+    <!-- Peter Beam -->
+    <div id="beam" class="peter-beam"></div>
+
+    <!-- Flash Effect -->
+    <div id="flash" class="beam-flash"></div>
+
+    <script>
+        const peter = document.getElementById('peter');
+        const healthBar = document.getElementById('health');
+        const beam = document.getElementById('beam');
+        const flash = document.getElementById('flash');
+        let health = 500;
+        let vx = 3; // Velocity X
+        let vy = 3; // Velocity Y
+        let isShooting = false;
+
+        // Function to update the health bar width
+        function updateHealth() {
+            health -= 10;
+            if (health <= 0) {
+                health = 0;
+                document.querySelector('.google-logo').innerHTML = "<span>W</span><span>e</span><span>l</span><span>l</span> <span>D</span><span>o</span><span>n</span><span>e</span>";
+            }
+            healthBar.style.width = (health / 500) * 100 + '%';
+        }
+
+        // Peter click event
+        peter.addEventListener('click', updateHealth);
+
+        // Bouncing Peter around the screen
+        function bouncePeter() {
+            if (isShooting) return;
+
+            const peterRect = peter.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            if (peterRect.right >= windowWidth || peterRect.left <= 0) {
+                vx = -vx; // Reverse X direction
+            }
+
+            if (peterRect.bottom >= windowHeight || peterRect.top <= 0) {
+                vy = -vy; // Reverse Y direction
+            }
+
+            peter.style.left = (peter.offsetLeft + vx) + 'px';
+            peter.style.top = (peter.offsetTop + vy) + 'px';
+
+            requestAnimationFrame(bouncePeter);
+        }
+
+        // Randomly stop Peter and shoot a beam
+        function stopAndShoot() {
+            setTimeout(() => {
+                if (!isShooting) {
+                    isShooting = true;
+                    peter.style.transition = 'transform 0.5s';
+                    peter.style.transform = 'scale(1.2)'; // Small zoom effect before shooting
+                    flash.style.display = 'block';
+                    setTimeout(() => {
+                        flash.style.display = 'none';
+                        shootBeam();
+                    }, 300);
+                }
+                stopAndShoot();
+            }, Math.random() * 5000 + 3000); // Peter will shoot every 3-8 seconds
+        }
+
+        // Peter shoots a beam
+        function shootBeam() {
+            beam.style.left = peter.offsetLeft + 50 + 'px';
+            beam.style.top = peter.offsetTop + 50 + 'px';
+            beam.style.display = 'block';
+
+            let beamInterval = setInterval(() => {
+                beam.style.left = (beam.offsetLeft + 10) + 'px';
+                if (beam.offsetLeft >= window.innerWidth) {
+                    clearInterval(beamInterval);
+                    beam.style.display = 'none';
+                    isShooting = false;
+                    peter.style.transform = 'scale(1)'; // Reset zoom effect
+                    bouncePeter(); // Resume bouncing
+                }
+
+                // Check if beam hits the mouse
+                document.addEventListener('mousemove', (e) => {
+                    const mouseX = e.clientX;
+                    const mouseY = e.clientY;
+                    const beamRect = beam.getBoundingClientRect();
+
+                    if (
+                        mouseX >= beamRect.left &&
+                        mouseX <= beamRect.right &&
+                        mouseY >= beamRect.top &&
+                        mouseY <= beamRect.bottom
+                    ) {
+                        alert('hehehehehe!');
+                        location.reload();
+                    }
+                });
+            }, 20);
+        }
+
+        // Initialize Peter's position and start bouncing
+        peter.style.left = '100px';
+        peter.style.top = '100px';
+        bouncePeter();
+
+        // Start Peter's random beam attack
+        stopAndShoot();
+    </script>
+
+</body>
+</html>
